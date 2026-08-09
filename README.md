@@ -2,7 +2,7 @@
 
 **MS Computer Science (AI/ML) @ Northeastern University · Boston, MA · Graduating December 2027**
 
-I build agentic AI systems and the infrastructure underneath them — LLM agents that plan
+I build agentic AI systems and the infrastructure underneath them LLM agents that plan
 and self-correct, retrieval pipelines over vector stores, and the evaluation harnesses
 that prove whether any of it actually works.
 
