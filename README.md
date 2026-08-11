@@ -9,7 +9,7 @@ that prove whether any of it actually works.
 Right now I'm focused on **agent evaluation**: measuring which components of an agent
 graph earn their latency and token cost, and which are just decoration.
 
-[LinkedIn](https://www.linkedin.com/in/paramsachinjain/) · [Portfolio](https://paramjain13.github.io/portfolio) · [Email](mailto:jain.param@northeastern.edu)
+[LinkedIn](https://www.linkedin.com/in/paramsachinjain/) · [Portfolio](https://paramjain13.https://paramjain.vercel.app) · [Email](mailto:jain.param@northeastern.edu)
 
 ---
 
