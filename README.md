@@ -34,7 +34,7 @@ through-line is a preference for things you can measure over things that merely 
 
 An agent that generates SQL, executes it, and repairs itself from execution errors.
 Benchmarked on **BIRD-SQL Mini-Dev (500 questions)**: **64.4% execution accuracy at 1.0 LLM
-calls per query** — where leading systems reach ~82% through multi-step pipelines costing many
+calls per query** where leading systems reach ~82% through multi-step pipelines costing many
 calls each. Schema-linking node on a cheap model, driver-level read-only SQL guard, correction
 loop bounded at 3 attempts.
 
