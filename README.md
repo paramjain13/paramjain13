@@ -1,109 +1,183 @@
-<h1 align="center">PARAM JAIN</h1>
+# MazeRunner: Adversarial Maze Navigation Using Classical Search and Reinforcement Learning
 
-<h3 align="center">AI / ML Engineer · Agentic Systems</h3>
+A two-agent adversarial maze game comparing classical AI search algorithms against reinforcement learning strategies. Built as the final project for **CS 5100: Foundations of Artificial Intelligence** at Northeastern University.
+
+**Authors:** Shalavya Agrawal & Param Jain
+
+---
+
+## Overview
+
+MazeRunner pits a **Runner** agent against a **Chaser** agent on a randomly generated grid-based maze. The Runner must collect three checkpoints scattered across the maze and reach the exit before the Chaser catches it. Both agents move simultaneously each turn, creating a dynamic adversarial planning problem.
+
+We implement and compare three strategy matchups:
+
+| Matchup | Runner Strategy | Chaser Strategy | Win Rate | Avg Steps |
+|---------|----------------|-----------------|----------|-----------|
+| Classical vs Classical | A* with danger-zone awareness | Minimax with alpha-beta pruning | **30.8%** | 48.4 |
+| RL vs Classical | Q-Learning (100K episodes) | Minimax with alpha-beta pruning | 29.7% | 324.2 |
+| RL vs RL (MARL) | Q-Learning (co-trained) | Q-Learning (co-trained) | 9.1% | 359.8 |
+
+> Results from 1,000 evaluation episodes on a 21×21 grid.
+
+---
+
+## Game Rules
+
+- Played on an N×N grid maze generated via randomized Prim's algorithm with loop-opening
+- **Runner** collects 3 checkpoints (placed in separate quadrants) then reaches the exit to win
+- **Chaser** wins by occupying the same cell as the Runner
+- Both agents move simultaneously (up/down/left/right)
+- Game ends on Runner win, Chaser catch, or step limit (500 for A*/Q-Learning, 700 for MARL)
+
+---
+
+## Project Structure
+
+```
+MazeRunner/
+├── maze_env.py              # Maze generation (Prim's algorithm), game state, entity placement
+├── renderer.py              # Step-by-step gameplay visualization
+├── agents/
+│   ├── astar.py             # A* search + enhanced A* with chaser danger-zone avoidance
+│   ├── minimax.py           # Minimax chaser with alpha-beta pruning (depth=2)
+│   ├── q_agent.py           # Single-agent Q-learning runner (training + inference)
+│   └── marl.py              # Multi-agent RL: independent Q-learning for both runner & chaser
+├── main_minimax.py          # Run A* Runner vs Minimax Chaser gameplay
+├── main_qlearning.py        # Run Q-Learning Runner vs Minimax Chaser gameplay
+├── main_marl.py             # Run MARL gameplay
+├── q_tables/
+│   ├── q_table.pkl          # Pre-trained Q-table for single-agent runner
+│   ├── runner_marl.pkl      # Pre-trained MARL runner Q-table
+│   └── chaser_marl.pkl      # Pre-trained MARL chaser Q-table
+└── tests/
+    ├── test_minimax.py      # Benchmark: A* Runner vs Minimax Chaser (1000 episodes)
+    ├── test_qlearning.py    # Benchmark: Q-Learning Runner vs Minimax Chaser (1000 episodes)
+    ├── test_marl.py         # Benchmark: MARL evaluation (1000 episodes)
+    ├── results_minimax.png  # Results chart for A* vs Minimax
+    ├── results_q.png        # Results chart for Q-Learning vs Minimax
+    └── results_marl.png     # Results chart for MARL
+```
+
+---
+
+## Setup
+
+### Requirements
+
+- Python 3.10+
+- NumPy
+- Matplotlib (for benchmark visualization)
+
+### Installation
+
+```bash
+git clone https://github.com/Shalavya8103/MazeRunner.git
+cd MazeRunner
+pip install numpy matplotlib
+```
+
+---
+
+## Usage
+
+### Play / Visualize Games
+
+```bash
+# A* Runner vs Minimax Chaser
+python main_minimax.py
+
+# Q-Learning Runner vs Minimax Chaser
+python main_qlearning.py
+
+# MARL: Q-Learning Runner vs Q-Learning Chaser
+python main_marl.py
+```
+
+### Run Benchmarks (1,000 episodes each)
+
+```bash
+cd tests
+
+# A* Runner vs Minimax Chaser
+python test_minimax.py
+
+# Q-Learning Runner vs Minimax Chaser
+python test_qlearning.py
+
+# MARL evaluation
+python test_marl.py
+```
+
+Each test script outputs win rate, average steps, timeout count, and average checkpoints collected, and saves a 4-panel results chart to the `tests/` directory.
+
+### Train Q-Learning Agents from Scratch
+
+```bash
+# Train single-agent Q-learning runner (100,000 episodes, ~30 min)
+python agents/q_agent.py
+
+# Train MARL runner + chaser (100,000 episodes, ~45 min)
+python agents/marl.py
+```
+
+Pre-trained Q-tables are included in `q_tables/` so you can skip training and go straight to evaluation.
+
+---
+
+## Algorithms
+
+### A* with Danger-Zone Awareness (`agents/astar.py`)
+
+Enhanced A* that adds a proximity penalty when candidate cells are near the Chaser. The Runner selects its next checkpoint target by combining Manhattan distance with a chaser-proximity penalty, then navigates using the modified cost function. This lets it dynamically reroute around the Chaser while still making progress.
+
+### Minimax Chaser (`agents/minimax.py`)
+
+Adversarial search with alpha-beta pruning at depth 2. The evaluation function rewards Chaser proximity to the Runner and penalizes Runner progress toward its next target. A move history prevents oscillation.
+
+### Q-Learning Runner (`agents/q_agent.py`)
+
+Tabular Q-learning trained over 100,000 episodes against the Minimax Chaser. Key hyperparameters:
+
+- Learning rate (α): 0.1
+- Discount factor (γ): 0.95
+- Epsilon decay: 0.99995 (from 1.0 → 0.05)
+- Rewards: +500 win, +100 checkpoint, −300 caught, −2/step, −5 revisit, ±1 distance shaping
+
+### Multi-Agent RL (`agents/marl.py`)
+
+Both Runner and Chaser train as independent Q-learning agents over 100,000 co-training episodes with separate Q-tables and epsilon schedules. The Chaser receives +500 for catching, −500 for Runner escape, and distance-based shaping rewards.
+
+---
+
+## Key Results
 
 <p align="center">
-  <a href="https://paramjain.vercel.app"><img src="https://img.shields.io/badge/Portfolio-Live-4FD1C5?style=for-the-badge" alt="Portfolio"></a>
-  <a href="https://www.linkedin.com/in/paramsachinjain/"><img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-  <a href="RESUME-LINK"><img src="https://img.shields.io/badge/Resume-View-E8A33D?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Resume"></a>
+  <img src="tests/results_minimax.png" width="80%" alt="A* vs Minimax Results"/>
+  <br><em>Figure 1: A* Runner vs Minimax Chaser — 30.8% win rate, 48.4 avg steps</em>
 </p>
-
-<p align="center"><i>I build LLM agents that plan, execute, and correct themselves —<br>and the evaluation harnesses that prove whether they actually work.</i></p>
-
----
-
-## About
-
-I work on agentic systems: LLM agents that decompose tasks, call tools, and repair their own
-failures. Most of my attention goes to the unglamorous half of that problem — **evaluation**.
-Measuring which components of an agent graph actually earn their latency and token cost, and
-which are decoration.
-
-Before that, production ML (a fraud-detection service on AWS) and systems work in Rust. The
-through-line is a preference for things you can measure over things that merely demo well.
-
-**M.S. Computer Science (AI/ML)** — Northeastern University, Boston · *Graduating December 2027*
-**B.Tech Computer Science** — Medi-Caps University, Indore
-
----
-
-## Featured Work
-
-### 01 — [nl2sql-agent](https://github.com/paramjain13/nl2sql-agent)
-> **Self-correcting text-to-SQL on LangGraph**
-
-An agent that generates SQL, executes it, and repairs itself from execution errors.
-Benchmarked on **BIRD-SQL Mini-Dev (500 questions)**: **64.4% execution accuracy at 1.0 LLM
-calls per query** where leading systems reach ~82% through multi-step pipelines costing many
-calls each. Schema-linking node on a cheap model, driver-level read-only SQL guard, correction
-loop bounded at 3 attempts.
-
-Also ships a root-cause classifier over all 178 failures: 32.6% projection errors, 25.3% table
-selection. Knowing *where* accuracy leaks is what makes the ablation worth running.
-
-**Tools:** LangGraph · Claude API · sqlglot · SQLite · Python
-
-<a href="https://github.com/paramjain13/nl2sql-agent"><img src="https://img.shields.io/badge/View_Code-181717?style=flat-square&logo=github" alt="View Code"></a>
-
----
-
-### 02 — [ai-content-analyzer-pro](https://github.com/paramjain13/ai-content-analyzer-pro)
-> **Multi-document RAG analysis**
-
-Retrieval pipeline over a vector store for analyzing document collections, with a
-model-agnostic backend running against both GPT-4 and Gemini.
-
-**Tools:** Python · RAG · Vector Search · GPT-4 · Gemini
-
-<a href="https://github.com/paramjain13/ai-content-analyzer-pro"><img src="https://img.shields.io/badge/View_Code-181717?style=flat-square&logo=github" alt="View Code"></a>
-
----
-
-### 03 — ELARA
-> **Multi-agent retrieval and reasoning**
-
-Multi-agent RAG system orchestrating retrieval, reasoning, and synthesis across a vector store,
-with scheduled ingestion pipelines.
-
-**Tools:** LangGraph · GPT-4 · Pinecone · Airflow
-
-<a href="ELARA-REPO-LINK"><img src="https://img.shields.io/badge/View_Code-181717?style=flat-square&logo=github" alt="View Code"></a>
-
----
-
-## Experience
-
-| Role | Company | Period | Highlights |
-| --- | --- | --- | --- |
-| **ML Engineering Intern** | Genesis Technologies | Jul — Dec 2024 | End-to-end fraud-detection pipeline over 15+ engineered features across 30K+ users, lifting **F1 from 0.71 to 0.89**. Shipped as a containerized AWS microservice (Lambda, S3, EC2) behind Flask REST APIs — **1,000+ requests/day at 97% uptime**, sub-500ms latency. |
-| **AI Engineering Intern** | DevQAExpert | Jan — May 2024 | scikit-learn classifier flagging defect-prone test scenarios across **15,000+ cases**, improving defect prediction by **42%**. Integrated into CI/CD, cutting manual regression effort by **60%**. |
-
----
-
-## Toolkit
-
-<p>
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
-  <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white">
-  <img src="https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white">
-  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white">
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white">
-</p>
-
----
-
-## Publications
-
-- **Enhancing Human-Robot Interaction through Advanced NLP** — *International Journal of Scientific Research in Engineering and Management (IJSREM)*, 2024
-  <br><sub>BERT + GPT-3 for real-time speech recognition and emotion detection — 86.5% interaction accuracy at sub-500ms response latency.</sub>
-
----
 
 <p align="center">
-  <b>Open to SDE and ML/AI internship and co-op roles</b><br>
-  US work authorized · No sponsorship required<br>
-  <a href="mailto:paramsachinjain@gmail.com">paramsachinjain@gmail.com</a> · Boston, MA
+  <img src="tests/results_q.png" width="80%" alt="Q-Learning vs Minimax Results"/>
+  <br><em>Figure 2: Q-Learning Runner vs Minimax Chaser — 29.7% win rate, 324.2 avg steps</em>
 </p>
+
+<p align="center">
+  <img src="tests/results_marl.png" width="80%" alt="MARL Results"/>
+  <br><em>Figure 3: MARL (Q-Learning vs Q-Learning) — 9.1% runner win rate, 359.8 avg steps</em>
+</p>
+
+### Takeaways
+
+- **A\* is the most efficient Runner strategy** — highest win rate with 7× fewer steps than Q-Learning
+- **Q-Learning matches A\* in win rate** but suffers from high timeouts (~56%) due to state space coverage gaps
+- **The Q-Learning Chaser is far more effective than Minimax** — catches the Runner in 90%+ of MARL games
+- **Larger mazes favor the Runner** — A* win rate increases from 23.7% (15×15) to 46.0% (31×31)
+
+---
+
+## References
+
+1. R. S. Sutton and A. G. Barto, *Reinforcement Learning: An Introduction*, 2nd ed. MIT Press, 2018.
+2. C. J. C. H. Watkins and P. Dayan, "Q-learning," *Machine Learning*, vol. 8, no. 3–4, pp. 279–292, 1992.
+3. S. Russell and P. Norvig, *Artificial Intelligence: A Modern Approach*, 4th ed. Pearson, 2021.
